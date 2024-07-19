@@ -17,10 +17,10 @@ import { Profile } from './profile.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({})
   id: number;
 
-  @Column({ unique: true, nullable: false })
+  @Column({ nullable: false })
   name: string;
 
   @Column({ unique: true, nullable: false })
