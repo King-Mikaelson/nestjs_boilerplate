@@ -10,6 +10,7 @@ import { ProductsModule } from './products/products.module';
 import { ProfileModule } from './profile/profile.module';
 import { dataSourceOptions } from '../src/database/data-source';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SeedingModule } from './database/seeding/seeding.module';
 
 @Module({
   providers: [
@@ -68,7 +69,6 @@ export class AppModule {}
 // import { ProfileModule } from './profile/profile.module';
 // import { dataSourceOptions } from './db-dataSource';
 // import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeedingModule } from './database/seeding/seeding.module';
 
 // @Module({
 //   providers: [

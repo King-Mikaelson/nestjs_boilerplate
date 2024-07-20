@@ -4,7 +4,8 @@ import { User } from 'src/entities/user.entity';
 import { Profile } from 'src/entities/profile.entity';
 import { Product } from 'src/entities/product.entity';
 import { Organisation } from 'src/entities/organisation.entity';
-
+import { CreateSeedingDto } from './dto/create-seeding.dto';
+import { UpdateSeedingDto } from './dto/update-seeding.dto';
 @Injectable()
 export class SeedingService {
   constructor(private readonly dataSource: DataSource) {}
@@ -92,6 +93,70 @@ export class SeedingService {
       await profileRepository.save([prof]);
 
       await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async create(createSeedingDto: CreateSeedingDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const userRepository = queryRunner.manager.getRepository(User);
+      const newUser = userRepository.create(createSeedingDto);
+      await userRepository.save(newUser);
+      await queryRunner.commitTransaction();
+      return newUser;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async findAll() {
+    const userRepository = this.dataSource.getRepository(User);
+    return await userRepository.find();
+  }
+
+  async findOne(id: number) {
+    const userRepository = this.dataSource.getRepository(User);
+    return await userRepository.findOneBy({ id });
+  }
+
+  async update(id: number, updateSeedingDto: UpdateSeedingDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const userRepository = queryRunner.manager.getRepository(User);
+      await userRepository.update(id, updateSeedingDto);
+      const updatedUser = await userRepository.findOneBy({ id });
+      await queryRunner.commitTransaction();
+      return updatedUser;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async remove(id: number) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const userRepository = queryRunner.manager.getRepository(User);
+      const user = await userRepository.findOneBy({ id });
+      await userRepository.remove(user);
+      await queryRunner.commitTransaction();
+      return user;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
