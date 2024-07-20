@@ -14,26 +14,25 @@ export const dataSourceOptions: DataSourceOptions = {
   logging: true,
   synchronize: true,
 };
-console.log(process.env.DB_USERNAME);
 
 const dataSource = new DataSource(dataSourceOptions);
 
-export const initializeDataSource = async () => {
-  try {
-    await dataSource.initialize();
-    console.log('Data Source has been initialized!');
+// export const initializeDataSource = async () => {
+//   try {
+//     await dataSource.initialize();
+//     console.log('Data Source has been initialized!');
 
-    const entityMetadata = dataSource.entityMetadatas;
-    entityMetadata.forEach(entity => {
-      console.log(`Entity: ${entity.name}`);
-      console.log(`Table: ${entity.tableName}`);
-    });
+//     const entityMetadata = dataSource.entityMetadatas;
+//     entityMetadata.forEach(entity => {
+//       console.log(`Entity: ${entity.name}`);
+//       console.log(`Table: ${entity.tableName}`);
+//     });
 
-    return dataSource;
-  } catch (err) {
-    console.error('Error during Data Source initialization', err);
-    throw err;
-  }
-};
+//     return dataSource;
+//   } catch (err) {
+//     console.error('Error during Data Source initialization', err);
+//     throw err;
+//   }
+// };
 
 export default dataSource;

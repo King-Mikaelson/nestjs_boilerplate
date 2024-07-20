@@ -5,6 +5,7 @@ import serverConfig from '../config/server.config';
 import * as Joi from 'joi';
 import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 import { OrganisationModule } from './organisation/organisation.module';
 import { ProductsModule } from './products/products.module';
 import { ProfileModule } from './profile/profile.module';
@@ -54,6 +55,7 @@ import { SeedingModule } from './database/seeding/seeding.module';
     ProductsModule,
     ProfileModule,
     SeedingModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
