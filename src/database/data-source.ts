@@ -1,38 +1,26 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import * as dotenv from 'dotenv';
 
-export const dataSourceOptions: DataSourceOptions = {
-  type: 'postgres',
-  username: 'user_organization_hng_task_user',
-  password: 'kq213c6ZEE9Ej3K3o6ciULulmiIVBs9r',
-  host: 'dpg-cq42pt2ju9rs739o0t60-a.oregon-postgres.render.com',
-  database: 'user_organization_hng_task',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/src/database/migrations/*.js'],
+dotenv.config();
+
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+export const dataSourceOptions = {
+  type: process.env.DB_TYPE as 'postgres',
+  username: process.env.DB_USERNAME,
+  password: process.env.DB_PASSWORD,
+  host: process.env.DB_HOST,
+  database: process.env.DB_DATABASE,
+  entities: [process.env.DB_ENTITIES],
+  migrations: [process.env.DB_MIGRATIONS],
+  synchronize: isDevelopment,
   ssl: {
     rejectUnauthorized: false,
   },
   logging: true,
-  synchronize: true,
 };
 
 const dataSource = new DataSource(dataSourceOptions);
-
-// export const initializeDataSource = async () => {
-//   try {
-//     await dataSource.initialize();
-//     console.log('Data Source has been initialized!');
-
-//     const entityMetadata = dataSource.entityMetadatas;
-//     entityMetadata.forEach(entity => {
-//       console.log(`Entity: ${entity.name}`);
-//       console.log(`Table: ${entity.tableName}`);
-//     });
-
-//     return dataSource;
-//   } catch (err) {
-//     console.error('Error during Data Source initialization', err);
-//     throw err;
-//   }
-// };
 
 export default dataSource;

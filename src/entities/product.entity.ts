@@ -1,10 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
 export class Product {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ nullable: false })
   product_name: string;
@@ -15,6 +15,7 @@ export class Product {
   @Column({ nullable: false })
   description: string;
 
-  @ManyToOne(type => User, user => user.products)
+  @ManyToOne(() => User, user => user.products)
+  @JoinColumn({ name: 'user_id' })
   user: User;
 }

@@ -124,12 +124,12 @@ export class SeedingService {
     return await userRepository.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const userRepository = this.dataSource.getRepository(User);
     return await userRepository.findOneBy({ id });
   }
 
-  async update(id: number, updateSeedingDto: UpdateSeedingDto) {
+  async update(id: string, updateSeedingDto: UpdateSeedingDto) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -147,7 +147,7 @@ export class SeedingService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

@@ -3,15 +3,17 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/createUserDto';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
+import { Public } from 'src/helpers/public.decorator';
 
-@Controller('auth')
+@Public()
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private jwtService: JwtService
   ) {}
 
-  @Post('api/v1/auth')
+  @Post('register')
   async create(@Body() createUserDto: CreateUserDto, @Res() response: Response) {
     try {
       const user = await this.authService.HandleCreateUser(createUserDto);
@@ -25,7 +27,8 @@ export class AuthController {
         token: accessToken,
         user: {
           id: user.id,
-          first_name: user.name,
+          first_name: user.first_name,
+          last_name: user.last_name,
           email: user.email,
         },
       };

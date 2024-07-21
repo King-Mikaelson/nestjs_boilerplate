@@ -19,16 +19,16 @@ export class SeedingController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.seedingService.findOne(+id);
+    return this.seedingService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSeedingDto: UpdateSeedingDto) {
-    return this.seedingService.update(+id, updateSeedingDto);
+    return this.seedingService.update(id, updateSeedingDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.seedingService.remove(+id);
+    return this.seedingService.remove(id);
   }
 }

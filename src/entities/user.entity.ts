@@ -9,6 +9,8 @@ import {
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { Product } from './product.entity';
@@ -17,11 +19,14 @@ import { Profile } from './profile.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn({})
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ nullable: false })
-  name: string;
+  first_name: string;
+
+  @Column({ nullable: false })
+  last_name: string;
 
   @Column({ unique: true, nullable: false })
   email: string;
@@ -29,15 +34,33 @@ export class User {
   @Column({ nullable: false })
   password: string;
 
-  @OneToMany(type => Product, product => product.user)
+  @Column({ nullable: true })
+  is_active: boolean;
+
+  @Column({ nullable: true })
+  attempts_left: number;
+
+  @Column({ nullable: true })
+  time_left: number;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @OneToMany(() => Product, product => product.user, { cascade: true })
   products: Product[];
 
-  @ManyToMany(() => Organisation, Organisation => Organisation.users)
-  @JoinTable()
+  @ManyToMany(() => Organisation, organisation => organisation.users, { cascade: true })
+  @JoinTable({
+    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'organisation_org_id', referencedColumnName: 'org_id' },
+  })
   organisations: Organisation[];
 
-  @OneToOne(() => Profile, profile => profile.user)
-  @JoinColumn()
+  @OneToOne(() => Profile, profile => profile.user, { cascade: true })
+  @JoinColumn({ name: 'user_id' })
   profile: Profile;
 
   @BeforeInsert()

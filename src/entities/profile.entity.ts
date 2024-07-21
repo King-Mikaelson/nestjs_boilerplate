@@ -1,16 +1,16 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToOne } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, OneToOne, PrimaryColumn } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
 export class Profile {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ nullable: false })
-  first_name: string;
+  @Column({ unique: true })
+  username: string;
 
-  @Column({ nullable: false })
-  last_name: string;
+  @Column({ nullable: true })
+  bio: string;
 
   @Column({ nullable: false })
   phone: string;
