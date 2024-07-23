@@ -1,14 +1,13 @@
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { Logger } from 'nestjs-pino';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
-import { NestFactory } from '@nestjs/core';
-import { SeedingService } from './database/seeding.service';
-import dataSource from './database/data-source';
 import { DataSource } from 'typeorm';
-import { setupRoutes } from './routes';
 import { AuthGuard } from './authGuard/jwt-auth.guard';
+import dataSource, { initializeDataSource } from './database/data-source';
+import { SeedingService } from './database/seeding/seeding.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
@@ -17,16 +16,12 @@ async function bootstrap() {
 
   const dataSource = app.get(DataSource);
 
-  if (!dataSource.isInitialized) {
-    try {
-      await dataSource.initialize();
-      logger.log('Database connection initialized successfully');
-    } catch (error) {
-      logger.error('Error initializing database connection:', error.message);
-      process.exit(1);
-    }
-  } else {
-    logger.log('Database connection is already initialized');
+  try {
+    await initializeDataSource();
+    console.log('Data Source has been initialized!');
+  } catch (err) {
+    console.error('Error during Data Source initialization', err);
+    process.exit(1);
   }
 
   const seedingService = app.get(SeedingService);
@@ -35,6 +30,7 @@ async function bootstrap() {
   app.enable('trust proxy');
   app.useLogger(logger);
   app.enableCors();
+  app.setGlobalPrefix('api/v1');
 
   // Apply AuthGuard globally
   app.useGlobalGuards(app.get(AuthGuard));
@@ -49,9 +45,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('api', app, document);
-
-  const server = app.getHttpAdapter().getInstance();
-  setupRoutes(server, seedingService);
 
   const port = app.get<ConfigService>(ConfigService).get<number>('server.port');
   await app.listen(port);

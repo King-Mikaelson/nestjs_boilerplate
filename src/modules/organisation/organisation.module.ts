@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { OrganisationController } from './organisation.controller';
 import { OrganisationService } from './organisation.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Organisation } from 'src/entities/organisation.entity';
+import { Organisation } from '../../entities/organisation.entity';
 
 @Module({
   controllers: [OrganisationController],

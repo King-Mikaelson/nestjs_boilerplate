@@ -1,12 +1,12 @@
-import { BadRequestException, Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/createUserDto';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { Public } from 'src/helpers/public.decorator';
+import { Public } from '../../helpers/public.decorator';
 
 @Public()
-@Controller('api/v1/auth')
+@Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
@@ -45,5 +45,15 @@ export class AuthController {
         error: error.response.error,
       });
     }
+  }
+
+  @Post('forget-password')
+  async sendMailer(@Res() response: any, @Body() { email }) {
+    console.log(email);
+    const mail = await this.authService.sendMail(email);
+    return response.status(200).json({
+      message: 'success',
+      mail,
+    });
   }
 }

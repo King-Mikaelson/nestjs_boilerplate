@@ -1,9 +1,9 @@
 import { Controller, Get, HttpStatus, Param, ParseIntPipe, ParseUUIDPipe, Req, Res, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { User } from 'src/entities/user.entity';
+import { User } from '../../entities/user.entity';
 import { Request, Response } from 'express';
-import { RoleGuard } from 'src/authGuard/role.guard';
-import { Roles } from 'src/helpers/role.decorator';
+import { RoleGuard } from '../../authGuard/role.guard';
+import { Roles } from '../../helpers/role.decorator';
 
 type PartialUser = Pick<User, 'email' | 'id'>;
 
@@ -11,7 +11,7 @@ interface RequestWithUser extends Request {
   user: PartialUser;
 }
 
-@Controller('api/v1/user')
+@Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
   @UseGuards(RoleGuard)
@@ -19,11 +19,9 @@ export class UserController {
   @Get(':id')
   async findOne(@Req() request: RequestWithUser, @Res() response: Response, @Param('id', ParseUUIDPipe) id: string) {
     try {
-      // Call the service method to get the user
-      // const userDetails = request.user;
       const userDetails = request.user;
       const user = await this.userService.getUser(id, userDetails);
-      return response.status(HttpStatus.CREATED).send({
+      return response.status(HttpStatus.OK).send({
         status_code: HttpStatus.OK,
         message: 'User fetched successfully',
         user,
@@ -31,7 +29,7 @@ export class UserController {
     } catch (error) {
       return response.status(error.response.statusCode).send({
         message: error.response.message,
-        status_code: error.response.code,
+        status_code: error.response.statusCode,
         error: error.response.error,
       });
     }

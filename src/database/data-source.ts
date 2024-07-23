@@ -6,7 +6,7 @@ dotenv.config();
 
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-export const dataSourceOptions = {
+const dataSource = new DataSource({
   type: process.env.DB_TYPE as 'postgres',
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
@@ -15,12 +15,18 @@ export const dataSourceOptions = {
   entities: [process.env.DB_ENTITIES],
   migrations: [process.env.DB_MIGRATIONS],
   synchronize: isDevelopment,
+  migrationsTableName: 'migrations',
   ssl: {
     rejectUnauthorized: false,
   },
   logging: true,
-};
+});
 
-const dataSource = new DataSource(dataSourceOptions);
+export async function initializeDataSource() {
+  if (!dataSource.isInitialized) {
+    await dataSource.initialize();
+  }
+  return dataSource;
+}
 
 export default dataSource;

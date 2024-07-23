@@ -1,167 +1,158 @@
 import { Injectable } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { User } from 'src/entities/user.entity';
-import { Profile } from 'src/entities/profile.entity';
-import { Product } from 'src/entities/product.entity';
-import { Organisation } from 'src/entities/organisation.entity';
-import { CreateSeedingDto } from './dto/create-seeding.dto';
-import { UpdateSeedingDto } from './dto/update-seeding.dto';
+import { User } from '../../entities/user.entity';
+import { Profile } from '../../entities/profile.entity';
+import { Product } from '../../entities/product.entity';
+import { Organisation } from '../../entities/organisation.entity';
+
 @Injectable()
 export class SeedingService {
   constructor(private readonly dataSource: DataSource) {}
 
-  async send() {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-
-    try {
-      const userRepository = queryRunner.manager.getId(User);
-      const profileRepository = queryRunner.manager.getId(Profile);
-      const productRepository = queryRunner.manager.getId(Product);
-      const organisationRepository = queryRunner.manager.getId(Organisation);
-
-      const users = await userRepository.find();
-      await userRepository.remove(User);
-      const profile = await profileRepository.find();
-      await profileRepository.remove(Profile);
-      const product = await productRepository.find();
-      await productRepository.remove(Product);
-      const organisation = await organisationRepository.find();
-      await organisationRepository.remove(Organisation);
-
-      const u1 = userRepository.create({ name: 'first_name' });
-      const u2 = userRepository.create({ name: 'last_name' });
-      const u3 = userRepository.create({ name: 'email' });
-      const u4 = userRepository.create({ name: 'password' });
-      const u5 = userRepository.create({ name: 'created_at' });
-      const u6 = userRepository.create({ name: 'updated_at' });
-
-      await userRepository.save([u1, u2, u3, u4]);
-
-      const p1 = profileRepository.create({ name: 'first_name' });
-      const p2 = profileRepository.create({ name: 'last_name' });
-      const p3 = profileRepository.create({ name: 'email' });
-      const p4 = profileRepository.create({ name: 'phone' });
-      const p5 = profileRepository.create({ name: 'avatar_image' });
-
-      await profileRepository.save([p1, p2, p3, p4, p5]);
-
-      const pr1 = productRepository.create({ name: 'product_name' });
-      const pr2 = productRepository.create({ name: 'product_price' });
-      const pr3 = productRepository.create({ name: 'description' });
-
-      await productRepository.save([pr1, pr2, pr3]);
-
-      const or1 = profileRepository.create({ name: 'org_name' });
-      const or2 = profileRepository.create({ name: 'description' });
-
-      await organisationRepository.save([p1, p2, p3, p4, p5]);
-
-      const pro1 = productRepository.create({
-        product_name: '',
-        description: '',
-        product_price: '',
-        user: '',
-      });
-      const prof = profileRepository.create({
-        first_name: '',
-        last_name: '',
-        email: '',
-        phone: '',
-        avatar_image: '',
-        user: '',
-      });
-      const org = organisationRepository.create({
-        org_name: '',
-        description: '',
-        user: [],
-      });
-      const usr = userRepository.create({
-        first_name: 'Gaming PC',
-        last_name: 'experience.',
-        email: '',
-        password: '',
-        created_at: '',
-        updated_at: '',
-        organisation: [],
-      });
-
-      await userRepository.save([usr]);
-      await productRepository.save([pro1]);
-      await organisationRepository.save([org]);
-      await profileRepository.save([prof]);
-
-      await queryRunner.commitTransaction();
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async create(createSeedingDto: CreateSeedingDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      const userRepository = queryRunner.manager.getRepository(User);
-      const newUser = userRepository.create(createSeedingDto);
-      await userRepository.save(newUser);
-      await queryRunner.commitTransaction();
-      return newUser;
-    } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
-    }
-  }
-
-  async findAll() {
+  async seedDatabase() {
     const userRepository = this.dataSource.getRepository(User);
-    return await userRepository.find();
-  }
 
-  async findOne(id: string) {
-    const userRepository = this.dataSource.getRepository(User);
-    return await userRepository.findOneBy({ id });
-  }
-
-  async update(id: string, updateSeedingDto: UpdateSeedingDto) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
     try {
-      const userRepository = queryRunner.manager.getRepository(User);
-      await userRepository.update(id, updateSeedingDto);
-      const updatedUser = await userRepository.findOneBy({ id });
-      await queryRunner.commitTransaction();
-      return updatedUser;
+      const existingUsers = await userRepository.count();
+      if (existingUsers > 0) {
+        console.log('Database is already populated. Skipping seeding.');
+        return;
+      }
+
+      const queryRunner = this.dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        const profileRepository = this.dataSource.getRepository(Profile);
+        const productRepository = this.dataSource.getRepository(Product);
+        const organisationRepository = this.dataSource.getRepository(Organisation);
+
+        const u1 = userRepository.create({
+          first_name: 'John',
+          last_name: 'Smith',
+          email: 'john.smith@example.com',
+          password: 'password',
+        });
+        const u2 = userRepository.create({
+          first_name: 'Jane',
+          last_name: 'Smith',
+          email: 'jane.smith@example.com',
+          password: 'password',
+        });
+
+        await userRepository.save([u1, u2]);
+
+        const savedUsers = await userRepository.find();
+        if (savedUsers.length !== 2) {
+          throw new Error('Failed to create all users');
+        }
+
+        const p1 = profileRepository.create({
+          username: 'johnsmith',
+          bio: 'bio data',
+          phone: '1234567890',
+          avatar_image: 'image.png',
+          user: savedUsers[0],
+        });
+        const p2 = profileRepository.create({
+          username: 'janesmith',
+          bio: 'bio data',
+          phone: '0987654321',
+          avatar_image: 'image.png',
+          user: savedUsers[1],
+        });
+
+        await profileRepository.save([p1, p2]);
+
+        const savedProfiles = await profileRepository.find();
+        if (savedProfiles.length !== 2) {
+          throw new Error('Failed to create all profiles');
+        }
+
+        const pr1 = productRepository.create({
+          product_name: 'Product 1',
+          description: 'Description 1',
+          product_price: 100,
+          user: savedUsers[0],
+        });
+        const pr2 = productRepository.create({
+          product_name: 'Product 2',
+          description: 'Description 2',
+          product_price: 200,
+          user: savedUsers[1],
+        });
+
+        await productRepository.save([pr1, pr2]);
+
+        const savedProducts = await productRepository.find();
+        if (savedProducts.length !== 2) {
+          throw new Error('Failed to create all products');
+        }
+
+        const or1 = organisationRepository.create({
+          org_name: 'Org 1',
+          description: 'Description 1',
+          users: savedUsers,
+        });
+        const or2 = organisationRepository.create({
+          org_name: 'Org 2',
+          description: 'Description 2',
+          users: [savedUsers[0]],
+        });
+
+        await organisationRepository.save([or1, or2]);
+
+        const savedOrganisations = await organisationRepository.find();
+        if (savedOrganisations.length !== 2) {
+          throw new Error('Failed to create all organisations');
+        }
+
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        console.error('Seeding failed:', error.message);
+      } finally {
+        await queryRunner.release();
+      }
     } catch (error) {
-      await queryRunner.rollbackTransaction();
-      throw error;
-    } finally {
-      await queryRunner.release();
+      console.error('Error while checking for existing data:', error.message);
     }
   }
 
-  async remove(id: string) {
-    const queryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async getUsers(): Promise<User[]> {
     try {
-      const userRepository = queryRunner.manager.getRepository(User);
-      const user = await userRepository.findOneBy({ id });
-      await userRepository.remove(user);
-      await queryRunner.commitTransaction();
-      return user;
+      return this.dataSource.getRepository(User).find({ relations: ['profile', 'products', 'organisations'] });
     } catch (error) {
-      await queryRunner.rollbackTransaction();
+      console.error('Error fetching users:', error.message);
       throw error;
-    } finally {
-      await queryRunner.release();
+    }
+  }
+
+  async getProfiles(): Promise<Profile[]> {
+    try {
+      return this.dataSource.getRepository(Profile).find({ relations: ['user'] });
+    } catch (error) {
+      console.error('Error fetching profiles:', error.message);
+      throw error;
+    }
+  }
+
+  async getProducts(): Promise<Product[]> {
+    try {
+      return this.dataSource.getRepository(Product).find({ relations: ['user'] });
+    } catch (error) {
+      console.error('Error fetching products:', error.message);
+      throw error;
+    }
+  }
+
+  async getOrganisations(): Promise<Organisation[]> {
+    try {
+      return this.dataSource.getRepository(Organisation).find({ relations: ['users'] });
+    } catch (error) {
+      console.error('Error fetching organisations:', error.message);
+      throw error;
     }
   }
 }

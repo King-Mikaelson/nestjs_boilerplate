@@ -1,4 +1,4 @@
-import { Organisation } from 'src/entities/organisation.entity';
+import { Organisation } from '../../entities/organisation.entity';
 import { ForbiddenException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
@@ -24,10 +24,11 @@ export class UserService {
       });
 
       if (!user) {
-        throw new NotFoundException(`User with ID ${id} not found`);
+        throw new NotFoundException(`User not found`);
       }
       delete user.password;
       if (userDetails.id === user.id) {
+        delete user.organisations;
         return user;
       }
 
@@ -50,50 +51,13 @@ export class UserService {
 
       delete user.organisations;
       return user;
-
-      // Check if authenticated user shares any organizations with requested user
-      const userOrganizations = await this.orgRepo
-        .createQueryBuilder('organisation')
-        .innerJoin('organisation.users', 'user', 'user.id = :userId', { userId: userDetails.id })
-        .innerJoin('organisation.users', 'requestedUser', 'requestedUser.id = :requestedUserId', {
-          requestedUserId: user.id,
-        })
-        .getMany();
-
-      // Query the join table directly
-      const commonOrganisations1 = await this.userRepo
-        .createQueryBuilder('user')
-        .innerJoin('user.organisations', 'organisation')
-        .innerJoin('user_organisations', 'user_org', 'user_org.organisation_id = organisation.org_id')
-        .where('user_org.user_id = :authenticatedUserId', { authenticatedUserId: authenticatedUser.id })
-        .andWhere('user_org.organisation_id IN (:...organisationIds)', {
-          organisationIds: user.organisations.map(org => org.org_id),
-        })
-        .getMany();
-
-      const commonOrganisations2 = await this.userRepo
-        .createQueryBuilder('user')
-        .innerJoin('user.organisations', 'organisation')
-        .innerJoin('user_organisations', 'user_org', 'user_org.organisation_id = organisation.org_id')
-        .where('user_org.user_id = :authenticatedUserId', { authenticatedUserId: userDetails.id })
-        .andWhere(
-          'user_org.organisation_id IN (SELECT user_org_2.organisation_id FROM user_organisations user_org_2 WHERE user_org_2.user_id = :requestedUserId)',
-          { requestedUserId: user.id }
-        )
-        .getMany();
-
-      if (commonOrganisations2.length === 0) {
-        throw new ForbiddenException('No similar organisation found');
-      }
-
-      if (!userOrganizations) {
-        throw new ForbiddenException('No similar organisation found');
-      }
-      return user;
     } catch (error) {
       console.error('Error fetching user:', error);
       // Handle specific exceptions if needed
       if (error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error instanceof ForbiddenException) {
         throw error;
       }
       // Handle unexpected errors

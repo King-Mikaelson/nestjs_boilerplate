@@ -7,14 +7,13 @@ import { LoggerModule } from 'nestjs-pino';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { OrganisationModule } from './modules/organisation/organisation.module';
-import { SeedingModule } from './database/seeding/seeding.module';
-import HealthController from './health.controller';
-import { dataSourceOptions } from '../src/database/data-source';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { SeedingService } from './database/seeding.service';
 import { JwtService } from './modules/auth/jwt/jwt.service';
 import { authGuardProvider } from './authGuard/auth.guard.provider';
-
+import { TypeOrmModule } from '@nestjs/typeorm';
+import dataSource from './database/data-source';
+import { SeedingModule } from './database/seeding/seeding.module';
+import { EmailModule } from './modules/email/email.module';
+import HealthController from './health.controller';
 @Module({
   providers: [
     {
@@ -29,7 +28,6 @@ import { authGuardProvider } from './authGuard/auth.guard.provider';
           forbidNonWhitelisted: true,
         }),
     },
-    SeedingService,
     JwtService,
     authGuardProvider,
   ],
@@ -54,11 +52,17 @@ import { authGuardProvider } from './authGuard/auth.guard.provider';
       }),
     }),
     LoggerModule.forRoot(),
-    TypeOrmModule.forRoot(dataSourceOptions),
     UserModule,
     OrganisationModule,
-    SeedingModule,
     AuthModule,
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => ({
+        ...dataSource.options,
+      }),
+      dataSourceFactory: async () => dataSource,
+    }),
+    SeedingModule,
+    EmailModule,
   ],
   controllers: [HealthController],
 })

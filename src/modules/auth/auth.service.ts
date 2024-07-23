@@ -3,15 +3,19 @@ import { Repository } from 'typeorm';
 import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateUserDto } from './dto/createUserDto';
-import { UserService } from 'src/modules/user/user.service';
-import { Organisation } from 'src/entities/organisation.entity';
+import { UserService } from '../../modules/user/user.service';
+import { Organisation } from '../../entities/organisation.entity';
+import { JwtService } from '@nestjs/jwt';
+import { EmailService } from '../email/service/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(Organisation) private readonly orgRepo: Repository<Organisation>,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly emailService: EmailService,
+    private jwtService: JwtService
   ) {}
 
   async HandleCreateUser(createUserDto: CreateUserDto): Promise<User> {
@@ -44,8 +48,18 @@ export class AuthService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      // Handle unexpected errors
+      // Handle unexpected error
       throw new InternalServerErrorException('An unexpected error occurred');
+    }
+  }
+  async sendMail(email: string) {
+    try {
+      const token = this.jwtService.sign({ email });
+      const url = `http://your-app.com/reset-password?token=${token}`;
+      await this.emailService.sendForgotPassword(email, token, url);
+    } catch (error) {
+      // Handle unexpected errors
+      throw new InternalServerErrorException(error.message);
     }
   }
 

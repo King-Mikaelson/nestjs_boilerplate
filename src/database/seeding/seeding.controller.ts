@@ -1,34 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post } from '@nestjs/common';
 import { SeedingService } from './seeding.service';
-import { CreateSeedingDto } from './dto/create-seeding.dto';
-import { UpdateSeedingDto } from './dto/update-seeding.dto';
 
-@Controller('seeding')
+@Controller('seed')
 export class SeedingController {
   constructor(private readonly seedingService: SeedingService) {}
 
   @Post()
-  create(@Body() createSeedingDto: CreateSeedingDto) {
-    return this.seedingService.create(createSeedingDto);
+  async seedDatabase() {
+    await this.seedingService.seedDatabase();
+    return { message: 'Database seeding initiated' };
   }
 
-  @Get()
-  findAll() {
-    return this.seedingService.findAll();
+  @Get('users')
+  async getUsers() {
+    return this.seedingService.getUsers();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.seedingService.findOne(id);
+  @Get('profiles')
+  async getProfiles() {
+    return this.seedingService.getProfiles();
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSeedingDto: UpdateSeedingDto) {
-    return this.seedingService.update(id, updateSeedingDto);
+  @Get('products')
+  async getProducts() {
+    return this.seedingService.getProducts();
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.seedingService.remove(id);
+  @Get('organisations')
+  async getOrganisations() {
+    return this.seedingService.getOrganisations();
   }
 }
